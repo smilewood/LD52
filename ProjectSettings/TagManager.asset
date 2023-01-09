@@ -42,6 +42,12 @@ TagManager:
   - name: Ground
     uniqueID: 3776309325
     locked: 0
+  - name: Crops
+    uniqueID: 4150631327
+    locked: 0
+  - name: UI
+    uniqueID: 3032934981
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0

@@ -54,4 +54,8 @@ public class PlayerController : MonoBehaviour
       rb.velocity = direction * Speed;
    }
 
+   public void SetMoveState(bool canMove)
+   {
+      Dead = !canMove;
+   }
 }

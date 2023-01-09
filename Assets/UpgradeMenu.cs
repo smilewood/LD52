@@ -44,7 +44,15 @@ public class UpgradeMenu : MonoBehaviour
    public GameObject Player;
    public WheatfieldController field;
    public UpgradeValues Upgrades;
-   
+
+
+   private void Update()
+   {
+      if(Input.GetKey(KeyCode.M) && Input.GetKeyDown(KeyCode.N))
+      {
+         AddMoney(1);
+      }
+   }
 
    internal void AddMoney(int income)
    {
@@ -71,7 +79,7 @@ public class UpgradeMenu : MonoBehaviour
          }
          case Upgrade.S_Intel:
          {
-            //You Win!
+            MenuFunctions.Instance.ShowMenu("YouWin");
             break;
          }
          case Upgrade.F_Move:

@@ -27,6 +27,7 @@ public class MorningReport : MonoBehaviour
 
    private void OnEnable()
    {
+      Player.GetComponent<PlayerController>().Dead = true;
       foreach (GameObject go in ReportsToShow)
       {
          go.SetActive(false);

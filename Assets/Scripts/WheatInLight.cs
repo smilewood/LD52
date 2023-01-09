@@ -26,7 +26,7 @@ public class WheatInLight : MonoBehaviour
    public void FixedUpdate()
    {
       updateCounter = updateCounter > 10 ? 0 : ++updateCounter;
-      if(updateCounter != update)
+      if (updateCounter != update)
       {
          return;
       }

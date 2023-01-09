@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ScarecrowAI : MonoBehaviour
 {
-   private enum AIState
+   public enum AIState
    {
       Wander,
       Sound,
