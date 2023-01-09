@@ -14,6 +14,11 @@ public class WheatfieldController : MonoBehaviour
    void Start()
    {
       plots = new Dictionary<Vector2Int, WheatPlot>();
+      CreateField();
+   }
+
+   private void CreateField()
+   {
       foreach (int x in Enumerable.Range(Width.x, (Width.y - Width.x) + 1))
       {
          foreach (int y in Enumerable.Range(Height.x, (Height.y - Height.x) + 1))
@@ -28,12 +33,6 @@ public class WheatfieldController : MonoBehaviour
       }
    }
 
-   // Update is called once per frame
-   void Update()
-   {
-
-   }
-
    public bool IsWheatAtLocation(Vector2Int location)
    {
       //If there was never wheat or if it was harvested return false
@@ -43,5 +42,17 @@ public class WheatfieldController : MonoBehaviour
    public WheatPlot GetPlotAtLocation(Vector2Int location)
    {
       return plots.GetValueOrDefault(location);
+   }
+
+   public void ReloadField()
+   {
+      foreach(Vector2Int key in plots.Keys.ToList())
+      {
+         GameObject target = plots[key].gameObject;
+         plots.Remove(key);
+         Destroy(target);
+      }
+
+      CreateField();
    }
 }

@@ -15,7 +15,7 @@ TagManager:
   - Crops
   - Player
   - Scarecrow
-  - 
+  - Ground
   - 
   - 
   - 
@@ -39,6 +39,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Ground
+    uniqueID: 3776309325
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0

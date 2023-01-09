@@ -8,6 +8,7 @@ public class ScarecrowAI : MonoBehaviour
    {
       Wander,
       Sound,
+      Search,
       Chase,
       Stop
    }
@@ -18,25 +19,28 @@ public class ScarecrowAI : MonoBehaviour
    public Vector2 target;
 
    public float LOSRange;
-
+   public int LOSPierce;
    public float speed;
    [Range(0,1)]
    public float speedMod;
 
    private ParticleSystem sparks;
 
-   private bool searching = false;
    private float searchCountdown;
    public float SearchTime;
    private Animator Animator;
    public AudioClip ChaseClip, EscapeClip, CaughtClip;
+
+   private Vector3 startPos;
    private void Start()
    {
       state = AIState.Wander;
       target = waypoints[Random.Range(0, waypoints.Length)].transform.position;
       sparks = GetComponentInChildren<ParticleSystem>();
       Animator = GetComponent<Animator>();
+      startPos = transform.position;
    }
+
 
    private void Update()
    {
@@ -45,14 +49,13 @@ public class ScarecrowAI : MonoBehaviour
          return;
       }
       UpdateMovement();
-
+      
       CheckLOS();
    }
 
    private void UpdateMovement()
    {
-      Vector3 direction = ((Vector3)target - transform.position).normalized;
-      transform.position = transform.position + (direction * speed * speedMod * Time.deltaTime);
+      transform.position = Vector3.MoveTowards(transform.position, target, speed * speedMod * Time.deltaTime);
 
       switch (state)
       {
@@ -71,28 +74,18 @@ public class ScarecrowAI : MonoBehaviour
             //For both sound and chace we want to go to the last known spot. 
             //If in chace mode it is likely that another part of update will be updating the target
 
-            //Got to the target, hang around a moment as if searching
             if (Vector2.Distance(transform.position, target) < .01)
             {
-               if (!searching)
-               {
-                  //Just got here, start searching
-                  if(state == AIState.Chase)
-                  {
-                     AudioManager.Instance.PlayMusicThenBackground(EscapeClip);
-                     sparks.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-                  }
-                  searching = true;
-                  searchCountdown = SearchTime;
-               }
-               else
-               {
-                  searchCountdown -= Time.deltaTime;
-                  if(searchCountdown <= 0)
-                  {
-                     ChangeAIState(AIState.Wander);
-                  }
-               }
+               ChangeAIState(AIState.Search);
+            }
+            break;
+         }
+         case AIState.Search:
+         {
+            searchCountdown -= Time.deltaTime;
+            if (searchCountdown <= 0)
+            {
+               ChangeAIState(AIState.Wander);
             }
             break;
          }
@@ -110,17 +103,24 @@ public class ScarecrowAI : MonoBehaviour
       _ = Physics2D.Raycast(RaycastSource.position, 
          (Player.transform.position - RaycastSource.position).normalized, 
          filter, results, LOSRange);
-
-      //Debug.Log(string.Join(", ", results.Select(r => r.collider.gameObject.name)));
-      for (int i = 0; i < 2 && i < results.Count; ++i)
+      //bool hasLOS = false;
+      for (int i = 0; i < LOSPierce && i < results.Count; ++i)
       {
          //If the first or second thing hit is the player
          if (results[i].collider.gameObject.layer == LayerMask.NameToLayer("Player"))
          {
             ChangeAIState(AIState.Chase);
             target = results[i].collider.gameObject.transform.position;
+            //hasLOS = true;
          }
       }
+      //if(state == AIState.Chase && !hasLOS)
+      //{
+      //   //Debug.Break();
+      //   //We lost them, go find the place
+      //   Debug.Log("LOS Lost");
+      //   ChangeAIState(AIState.Sound);
+      //}
    }
 
    private void OnDrawGizmos()
@@ -143,21 +143,30 @@ public class ScarecrowAI : MonoBehaviour
 
    private void ChangeAIState(AIState newState)
    {
-      searching = false;
       switch (newState)
       {
          case AIState.Wander:
          {
-            if(state == AIState.Chase)
-            {
-               //Chase will always end with wander
-            }
             state = AIState.Wander;
             break;
          }
          case AIState.Sound:
          {
+            
             state = AIState.Sound;
+            break;
+         }
+         case AIState.Search:
+         {
+            //A chase ends with losing LOS, so sound mode, or death, so deal with chase ending here.
+            if (state == AIState.Chase)
+            {
+               Debug.Log("EndChase");
+               AudioManager.Instance.PlayMusicThenBackground(EscapeClip);
+               sparks.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            }
+            searchCountdown = SearchTime;
+            state = AIState.Search;
             break;
          }
          case AIState.Chase:
@@ -168,7 +177,7 @@ public class ScarecrowAI : MonoBehaviour
                state = AIState.Chase;
 
                //Make the sound
-               AudioManager.Instance.PlayMusic(ChaseClip);
+               AudioManager.Instance.PlayMusic(ChaseClip, false);
 
                sparks.Play();
             }
@@ -190,5 +199,19 @@ public class ScarecrowAI : MonoBehaviour
          Player.GetComponent<PlayerController>().Dead = true;
          GameOverUI.SetActive(true);
       }
+   }
+
+   public void PauseScarecrow()
+   {
+      state = AIState.Stop;
+      Animator.SetTrigger("Stop");
+   }
+
+   public void ResetScarecrow()
+   {
+      state = AIState.Wander;
+      target = waypoints[Random.Range(0, waypoints.Length)].transform.position;
+      Animator.SetTrigger("Resume");
+      transform.position = startPos;
    }
 }

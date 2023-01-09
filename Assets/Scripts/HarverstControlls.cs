@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,14 +13,13 @@ public class HarverstControlls : MonoBehaviour
    private ScarecrowAI scarecrow;
    public AudioSource SoundEffect;
    public int count = 0;
-   public Text countText;
+   public TMP_Text countText;
    // Start is called before the first frame update
    void Start()
    {
       field = GameObject.Find("Wheatfield").GetComponent<WheatfieldController>();
       scarecrow = GameObject.Find("Scarecrow").GetComponent<ScarecrowAI>();
-      countText.text = $"Wheat: {count}";
-
+      UpdateText();
    }
 
    // Update is called once per frame
@@ -49,12 +49,22 @@ public class HarverstControlls : MonoBehaviour
          {
             field.GetPlotAtLocation(GetGridPos()).Harvest();
             ++count;
-            countText.text = $"Wheat: {count}";
+            UpdateText();
             harvesting = false;
          }
       }
    }
 
+   public void ResetCount()
+   {
+      count = 0;
+      UpdateText();
+   }
+
+   private void UpdateText()
+   {
+      countText.text = $"X {count}";
+   }
    private Vector2Int GetGridPos()
    {
       return new Vector2Int(Mathf.FloorToInt(this.transform.position.x), Mathf.FloorToInt(this.transform.position.y));
